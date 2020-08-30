@@ -1,25 +1,45 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+Loading and prepocessing the data
 
+```{r}
+activity <- read.table("repdata_data_activity/activity.csv", header = TRUE, sep = ",")
+activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
+```
 
-## Loading and preprocessing the data
+What is mean total number of steps taken per day?
 
+```{r}
+## Total number of steps taken per day
+sum(activity$steps)
+## Histogram of the total number of steps taken each day
+hist(activity$steps, main = "Total number of steps taken per day", xlab = "Steps")
+## Mean and median of the total number of steps taken per day
+mean(activity$steps)
+median(activity$steps)
+```
 
+What is the average daily activity pattern?
+```{r}
+activity_AGG <- aggregate(steps ~ interval, activity, mean)
+plot(activity_AGG$interval,activity_AGG$steps, type = "l", main = "Average number of steps taken x 5-minute interval", ylab = "Average Number of Steps", xlab = "5-min interval")
+```
 
-## What is mean total number of steps taken per day?
+Imputing missing values
+```{r}
+table(is.na(activity))
+activity[is.na(activity$steps),]$steps <- mean(activity$steps,na.rm = TRUE)
+activity_new <- activity
+hist(activity_new$steps, main = "Total number of steps taken per day", xlab = "Steps")
+mean(activity_new$steps)
+median(activity_new$steps)
+sum(activity_new$steps)
+```
 
+Are there dufferences in activity between weekdays and weekends?
+```{r}
+weekday <- c("segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira")
+activity_new$day <- factor(weekdays(activity_new$date) %in% weekday, levels = c(FALSE, TRUE), labels = c("weekend", "weekday"))
 
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+activity_new_AGG <- aggregate(steps ~ interval + day, activity_new, mean)
+library(lattice)
+xyplot(activity_new_AGG$steps ~ activity_new_AGG$interval | activity_new_AGG$day, type = "l", main = "Average number of steps taken x 5-minute interval", ylab = "Average Number of Steps", xlab = "5-min interval")
+```
